@@ -23,6 +23,7 @@ int main(int argc, char *argv[]) {
     r_init();
     tex_init();
     hotload_init();
+    ent_init();
     
     Texture *t = load_texture("data/textures/test.jpg");
     Program prog; setup_program(&prog, "data/shaders/passthrough.vert", "data/shaders/passthrough.frag");
@@ -31,6 +32,10 @@ int main(int argc, char *argv[]) {
     float prev_time = SDL_GetTicks() / 1000.0f;
     
     Vec2 position = Vec2(0, 0);
+    
+    My_Entity *entity = ent_create(My_Entity);
+    Entity *e = entity->base;
+    My_Entity *a = ent_downcast(e, My_Entity);
     
     SDL_Event event;
     bool should_quit = false;
@@ -59,8 +64,6 @@ int main(int argc, char *argv[]) {
         r_render_texture(t, cursor_position);
         r_end_frame();
     }
-    
-    
-    SDL_Quit();
+        
     return 0;
 }

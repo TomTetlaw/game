@@ -52,30 +52,29 @@ template<typename T> int array_find(Array<T> *array, const T &value) {
     return -1;
 }
 
-template<typename T>
+template<typename T, int s>
 struct Contiguous_Array {
     T *data = null;
     bool *filled = null;
-    int size = 0;
+    int size = s;
     int last_removed = 0;
     
     inline T &operator[](int index) { return data[index]; }
     T *first() { if(!data) return null; return &data[0]; }
 };
 
-template<typename T> void carray_init(Contiguous_Array<T> *ca, int size) {
+template<typename T, int s> void carray_init(Contiguous_Array<T, s> *ca) {
     if(ca->data) {
         carray_free(ca);
     }
     
-    ca->data = allocn(T, size);
-    ca->filled = allocn(bool, size);
-    memset(ca->filled, 0, sizeof(bool) * size);
-    ca->size = size;
+    ca->data = allocn(T, ca->size);
+    ca->filled = allocn(bool, ca->size);
+    memset(ca->filled, 0, sizeof(bool) * ca->size);
     ca->last_removed = 0;
 }
 
-template<typename T> void carray_free(Contiguous_Array<T> *ca) {
+template<typename T, int s> void carray_free(Contiguous_Array<T, s> *ca) {
     free(ca->data);
     free(ca->filled);
     ca->data = null;
@@ -84,7 +83,7 @@ template<typename T> void carray_free(Contiguous_Array<T> *ca) {
     ca->last_removed = 0;
 }
 
-template<typename T> int carray_find_free(Contiguous_Array<T> *ca) {
+template<typename T, int s> int carray_find_free(Contiguous_Array<T, s> *ca) {
     int found = -1;
     if(!ca->filled[ca->last_removed]) {
         found = ca->last_removed;
@@ -100,17 +99,20 @@ template<typename T> int carray_find_free(Contiguous_Array<T> *ca) {
     return found;
 }
 
-template<typename T> void carray_add(Contiguous_Array<T> *ca, const T &value) {
+template<typename T, int s> int carray_add(Contiguous_Array<T, s> *ca, const T &value) {
     if(!ca->data) return;
     
     int found = carray_find_free(ca);
     if(found != -1) {
         memcpy(&ca->data[found], &value, sizeof(T));
         ca->filled[found] = true;
+        return found;
     }
+    
+    return -1;
 }
 
-template<typename T> T *carray_alloc(Contiguous_Array<T> *ca) {
+template<typename T, int s> T *carray_alloc(Contiguous_Array<T, s> *ca, int *index) {
     if(!ca->data) return null;
     
     int found = carray_find_free(ca);
@@ -118,13 +120,15 @@ template<typename T> T *carray_alloc(Contiguous_Array<T> *ca) {
         T dummy;
         memcpy(&ca->data[found], &dummy, sizeof(T));
         ca->filled[found] = true;
+        *index = found;
         return &ca->data[found];
     } else {
+        *index = -1;
         return null;
     }
 }
 
-template<typename T> void carray_remove(Contiguous_Array<T> *ca, int index) {
+template<typename T, int s> void carray_remove(Contiguous_Array<T, s> *ca, int index) {
     if(index < 0 || index >= ca->size) return;
     if(!ca->filled[index]) return;
     

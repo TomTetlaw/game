@@ -18,5 +18,6 @@
 #include "render.h"
 #include "texture.h"
 #include "hotload.h"
+#include "entity.h"
 
 #endif

@@ -7,6 +7,7 @@
 #include "render.cpp"
 #include "texture.cpp"
 #include "hotload_win.cpp"
+#include "entity.cpp"
 #pragma comment(lib, "../lib/sdl2.lib")
 #pragma comment(lib, "../lib/glew32.lib")
 #pragma comment(lib, "opengl32.lib")
