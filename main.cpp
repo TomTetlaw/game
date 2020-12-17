@@ -1,0 +1,66 @@
+#include "includes.h"
+
+int main(int argc, char *argv[]) {
+    if(SDL_Init(SDL_INIT_EVERYTHING) < 0) fatal_error("ERROR", "Could not initialize SDL2: %s", SDL_GetError());
+    
+    sdl_window = SDL_CreateWindow("Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, window_width, window_height, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+    if(!sdl_window) fatal_error("ERROR", "Could not create window: %s", SDL_GetError());
+    
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GLContext context = SDL_GL_CreateContext(sdl_window);
+    
+    glewInit();
+    
+    r_init();
+    tex_init();
+    hotload_init();
+    
+    Texture *t = load_texture("data/textures/test.jpg");
+    Program prog; setup_program(&prog, "data/shaders/passthrough.vert", "data/shaders/passthrough.frag");
+    set_program(&prog);
+    
+    float prev_time = SDL_GetTicks() / 1000.0f;
+    
+    Vec2 position = Vec2(0, 0);
+    
+    SDL_Event event;
+    bool should_quit = false;
+    while(!should_quit) {
+        hotload_check_files_non_blocking();
+        
+        float now = SDL_GetTicks() / 1000.0f;
+        delta_time = now - prev_time;
+        current_time = now;
+        prev_time = current_time;
+        
+        int x=0, y=0; SDL_GetMouseState(&x, &y);
+        cursor_position = Vec2(x, y);
+        
+        SDL_PollEvent(&event);
+        switch(event.type) {
+        case SDL_QUIT:
+            quit();
+            break;
+        }
+        
+        position.x += 100 * delta_time;
+        position.y += 100 * delta_time;
+        
+        r_begin_frame();
+        r_render_texture(t, cursor_position);
+        r_end_frame();
+    }
+    
+    
+    SDL_Quit();
+    return 0;
+}

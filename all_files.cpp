@@ -1,0 +1,12 @@
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_TRUETYPE_IMPLEMENTATION
+#define SDL_MAIN_HANDLED
+#include "includes.h"
+#include "main.cpp"
+#include "utils.cpp"
+#include "render.cpp"
+#include "texture.cpp"
+#include "hotload_win.cpp"
+#pragma comment(lib, "../lib/sdl2.lib")
+#pragma comment(lib, "../lib/glew32.lib")
+#pragma comment(lib, "opengl32.lib")
