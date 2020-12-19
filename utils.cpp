@@ -31,8 +31,10 @@ Load_File_Result load_entire_file(const char *filename) {
 	Load_File_Result result;
     
 	fopen_s(&f, filename, "rb");
+    defer { fclose(f); };
     
 	if (!f) {
+        assert(false, "failed to load file %s", filename);
 		return result;
 	}
     
@@ -44,8 +46,6 @@ Load_File_Result load_entire_file(const char *filename) {
 	char *buffer = allocn(char, len + 1);
 	fread_s((void*)buffer, len + 1, len, 1, f);
 	buffer[len] = 0;
-    
-	fclose(f);
     
 	result.data = buffer;
 	result.length = len;

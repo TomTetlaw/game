@@ -21,6 +21,7 @@
 #include "array.h"
 #include "render.h"
 #include "texture.h"
+#include "font.h"
 #include "hotload.h"
 #include "entity.h"
 #include "entity_types.h"

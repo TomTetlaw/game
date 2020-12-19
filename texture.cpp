@@ -13,9 +13,12 @@ void tex_shutdown() {
     for(int i = 0; i < textures.count; i++) unload_texture(textures[i]);
 }
 
-void load_texture_base(const char *filename, uint *id, int *width, int *height) {
+bool load_texture_base(const char *filename, uint *id, int *width, int *height) {
     unsigned char *pixels = stbi_load(filename, width, height, 0, STBI_rgb_alpha);
-    if(pixels == null) fatal_error("ERROR", "Could not load image %s: %s", filename, stbi_failure_reason());
+    if(pixels == null) {
+        assert(false, "Could not load image %s: %s", filename, stbi_failure_reason());
+        return false;
+    }
     
     glGenTextures(1, id);
 	glBindTexture(GL_TEXTURE_2D, *id);
@@ -25,6 +28,8 @@ void load_texture_base(const char *filename, uint *id, int *width, int *height) 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, *width, *height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+    
+    return true;
 }
 
 void texture_hotload_callback(const char *filename, void *data) {
@@ -40,7 +45,7 @@ Texture *load_texture(const char *filename) {
     
     uint id = -1;
     int width = 0, height = 0;
-    load_texture_base(filename, &id, &width, &height);
+    if(!load_texture_base(filename, &id, &width, &height)) return null;
     
     Texture *texture = alloc(Texture);
     texture->id = id;

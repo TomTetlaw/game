@@ -46,6 +46,7 @@ Entity *ent_get_from_handle(ehandle handle) {
 
 template<typename T>
 void ent_remove(T *entity) {
+    assert(entity->index > 0, "trying to remove an entity that hasn't been added yet");
     carray_remove(&T::_list, entity->base->derived_index);
     carray_remove(&entities, entity->base->index);
 }

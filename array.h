@@ -94,6 +94,7 @@ template<typename T, int s> int carray_find_free(Contiguous_Array<T, s> *ca) {
         }
     }
     
+    assert(found != -1, "Contiguous array out of space.");
     return found;
 }
 

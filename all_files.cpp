@@ -1,3 +1,6 @@
+#pragma comment(lib, "../lib/sdl2.lib")
+#pragma comment(lib, "../lib/glew32.lib")
+#pragma comment(lib, "opengl32.lib")
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_TRUETYPE_IMPLEMENTATION
 #define SDL_MAIN_HANDLED
@@ -8,6 +11,4 @@
 #include "texture.cpp"
 #include "hotload_win.cpp"
 #include "entity.cpp"
-#pragma comment(lib, "../lib/sdl2.lib")
-#pragma comment(lib, "../lib/glew32.lib")
-#pragma comment(lib, "opengl32.lib")
+#include "font.cpp"

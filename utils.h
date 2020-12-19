@@ -33,10 +33,8 @@ void log(const char *subject, const char *text, ...) {
 
 // Taken (stolen) from Jon Blow.
 // Defer macro/thing
-
 #define CONCAT_INTERNAL(x,y) x##y
 #define CONCAT(x,y) CONCAT_INTERNAL(x,y)
-
 template<typename T>
 struct Exit_Scope {
     T lambda;
@@ -46,22 +44,23 @@ struct Exit_Scope {
     private:
     Exit_Scope &operator=(const Exit_Scope&);
 };
-
 class Exit_Scope_Help {
     public:
     template<typename T> Exit_Scope<T> operator+(T t){ return t; }
 };
-
 #define defer const auto &CONCAT(defer__, __LINE__) = Exit_Scope_Help() + [&]()
 
 #ifdef assert
 #undef assert
 #endif
 
+#ifdef _DEBUG
 #ifdef _WINDOWS
 #define assert(x, m, ...) { if (!_assert(x, __FILE__, __LINE__, m, __VA_ARGS__)) if(IsDebuggerPresent()) __debugbreak(); }
 #else 
 #define assert(x, m, ...) _assert(x, __FILE__, __LINE__, m, __VA_ARGS__)
+#endif
+#else #define assert(x,m,...)
 #endif
 
 inline bool _assert(bool condition, const char *file, int line,  const char *message, ...) {
