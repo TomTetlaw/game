@@ -209,6 +209,8 @@ void setup_program(Program *program, const char *vertex_filename, const char *fr
 }
 
 void r_execute_commands() {
+    if(!current_program) return;
+    
 	int sampler_loc = glGetUniformLocation(current_program->program_object, "diffuse_texture");
 	int projection_matrix_loc = glGetUniformLocation(current_program->program_object, "projection_matrix");
 	int worldview_matrix_loc = glGetUniformLocation(current_program->program_object, "worldview_matrix");
@@ -218,8 +220,8 @@ void r_execute_commands() {
     
 	glUniform1i(sampler_loc, 0);
     
-	assert(verts_buffer.count < MAX_VERTICIES);
-	assert(indices_buffer.count < MAX_INDICES);
+	assert(verts_buffer.count < MAX_VERTICIES, "ran out of verts!");
+	assert(indices_buffer.count < MAX_INDICES, "ran out of indices!");
 	glBufferSubData(GL_ARRAY_BUFFER, 0, verts_buffer.count * sizeof(Vertex), verts_buffer.data);
 	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, indices_buffer.count * sizeof(unsigned int), indices_buffer.data);
     

@@ -304,10 +304,10 @@ inline Mat4 create_ortho_matrix(float left, float right, float bottom, float top
     return out;
 }
 
-inline Mat4 create_perspective_matrix(float fov, float width, float height, float near, float far, float aspect = 1) {
+inline Mat4 create_perspective_matrix(float fov, float width, float height, float znear, float zfar, float aspect = 1) {
     float yscale = 1.0 / tan(deg2rad(fov / 2));
     float xscale = yscale / aspect;
-    float diff = near - far;
+    float diff = znear - zfar;
     Mat4 out;
     
     out.m[0][0] = xscale; 
@@ -322,12 +322,12 @@ inline Mat4 create_perspective_matrix(float fov, float width, float height, floa
     
     out.m[2][0] = 0;
     out.m[2][1] = 0;
-    out.m[2][2] = (far + near) / diff;
+    out.m[2][2] = (zfar + znear) / diff;
     out.m[2][2] = -1;
     
     out.m[3][0] = 0;
     out.m[3][1] = 0;
-    out.m[3][2] = 2 * far * near / diff;
+    out.m[3][2] = 2 * zfar * znear / diff;
     out.m[3][2] = 0;
             
     return out;

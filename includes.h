@@ -6,6 +6,10 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+#ifdef _WINDOWS
+#include <windows.h>
+#endif
+
 #include "include/glew.h"
 
 #include "include/stb_image.h"
@@ -19,5 +23,6 @@
 #include "texture.h"
 #include "hotload.h"
 #include "entity.h"
+#include "entity_types.h"
 
 #endif

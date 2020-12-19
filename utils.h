@@ -54,6 +54,31 @@ class Exit_Scope_Help {
 
 #define defer const auto &CONCAT(defer__, __LINE__) = Exit_Scope_Help() + [&]()
 
+#ifdef assert
+#undef assert
+#endif
+
+#ifdef _WINDOWS
+#define assert(x, m, ...) { if (!_assert(x, __FILE__, __LINE__, m, __VA_ARGS__)) if(IsDebuggerPresent()) __debugbreak(); }
+#else 
+#define assert(x, m, ...) _assert(x, __FILE__, __LINE__, m, __VA_ARGS__)
+#endif
+
+inline bool _assert(bool condition, const char *file, int line,  const char *message, ...) {
+    va_list args;
+    
+    if(!condition) {
+        printf("*** ASSERTION FAILED ***\n");
+        printf("At %s(%d): ", file, line);
+        va_start(args, message);
+        vprintf(message, args);
+        va_end(args);
+        printf("\n");
+    }
+    
+    return condition;
+}
+
 void quit();
 void fatal_error(const char *title, const char *text, ...);
 

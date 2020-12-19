@@ -1,5 +1,4 @@
 #include "includes.h"
-#include <Windows.h>
 
 internal Array<Hotloaded_File *> files;
 internal HANDLE dir_change_notification;

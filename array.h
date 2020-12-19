@@ -8,7 +8,6 @@ struct Array {
     int count = 0;
     
     inline T &operator[](int index) { return data[index]; }
-    T *first() { if(!data) return null; return &data[0]; }
 };
 
 template<typename T> void array_free(Array<T> *array) {
@@ -60,7 +59,6 @@ struct Contiguous_Array {
     int last_removed = 0;
     
     inline T &operator[](int index) { return data[index]; }
-    T *first() { if(!data) return null; return &data[0]; }
 };
 
 template<typename T, int s> void carray_init(Contiguous_Array<T, s> *ca) {

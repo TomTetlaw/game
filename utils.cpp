@@ -10,6 +10,7 @@ void quit() {
     r_shutdown();
     tex_shutdown();
     SDL_Quit();
+    
     exit(0);
 }
 

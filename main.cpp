@@ -25,20 +25,9 @@ int main(int argc, char *argv[]) {
     hotload_init();
     ent_init();
     
-    Texture *t = load_texture("data/textures/test.jpg");
-    Program prog; setup_program(&prog, "data/shaders/passthrough.vert", "data/shaders/passthrough.frag");
-    set_program(&prog);
-    
-    float prev_time = SDL_GetTicks() / 1000.0f;
-    
-    Vec2 position = Vec2(0, 0);
-    
-    My_Entity *entity = ent_create(My_Entity);
-    Entity *e = entity->base;
-    My_Entity *a = ent_downcast(e, My_Entity);
-    
     SDL_Event event;
     bool should_quit = false;
+    float prev_time = SDL_GetTicks() / 1000.0f;
     while(!should_quit) {
         hotload_check_files_non_blocking();
         
@@ -57,11 +46,7 @@ int main(int argc, char *argv[]) {
             break;
         }
         
-        position.x += 100 * delta_time;
-        position.y += 100 * delta_time;
-        
         r_begin_frame();
-        r_render_texture(t, cursor_position);
         r_end_frame();
     }
         
