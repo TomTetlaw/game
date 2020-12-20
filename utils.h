@@ -82,7 +82,7 @@ void quit();
 void fatal_error(const char *title, const char *text, ...);
 
 struct Load_File_Result {
-	char *data = nullptr;
+	unsigned char *data = nullptr;
 	int length = 0;
 };
 

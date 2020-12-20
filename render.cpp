@@ -85,7 +85,7 @@ unsigned int load_shader(const char *filename, unsigned int type) {
     
 	Load_File_Result file = load_entire_file(filename);
 	object = glCreateShader(type);
-	glShaderSource(object, 1, &file.data, &file.length);
+	glShaderSource(object, 1, (const GLchar * const *)&file.data, &file.length);
 	glCompileShader(object);
 	delete[] file.data;
     
@@ -184,7 +184,42 @@ void r_render_texture(Texture *texture, Vec2 position) {
 void r_render_string(Vec2 position, const char *text, Vec4 colour, Font *font, float wrap) {
 	if (!font) {
 		font = load_font("data/fonts/consolas.ttf", 16);
-	}    
+	}
+    
+    int length = (int)strlen(text);
+    for(int i = 0; i < length; i++) {
+        int c = text[i] - 32;
+        stbtt_aligned_quad q;
+        stbtt_GetBakedQuad(font->glyphs, font->texture->width, font->texture->height, c, &position.x, &position.y, &q, 1);
+        
+        Vertex verts[4];
+    	verts[0].position = Vec3(q.x0, q.y0, 0);
+    	verts[1].position = Vec3(q.x1, q.y0, 0);
+    	verts[2].position = Vec3(q.x1, q.y1, 0);
+    	verts[3].position = Vec3(q.x0, q.y1, 0);
+    	verts[0].uv = Vec2(q.s0, q.t1);
+    	verts[1].uv = Vec2(q.s1, q.t1);
+    	verts[2].uv = Vec2(q.s1, q.t0);
+    	verts[3].uv = Vec2(q.s0, q.t0);
+    	verts[0].colour = Vec4(1, 1, 1, 1);
+    	verts[1].colour = Vec4(1, 1, 1, 1);
+    	verts[2].colour = Vec4(1, 1, 1, 1);
+    	verts[3].colour = Vec4(1, 1, 1, 1);
+    
+    	unsigned int indicies[6];
+    	indicies[0] = 0;
+    	indicies[1] = 1;
+    	indicies[2] = 2;
+    	indicies[3] = 0;
+    	indicies[4] = 2;
+        indicies[5] = 3;
+       
+        Render_Command rc;
+        rc.type = RC_TEXTURE;
+        rc.texture.first_index = add_verts(verts, 4, indicies, 6);
+        rc.texture.texture = font->texture;
+        array_add(&commands, rc);
+    }
 }
 
 void r_render_string_format(Vec2 position, Vec4 colour, Font *font, float wrap, const char *text, ...) {

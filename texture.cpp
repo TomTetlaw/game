@@ -137,3 +137,17 @@ Texture *create_texture_from_surface(const char *name, SDL_Surface *surface) {
 	create_texture_data_from_surface(texture, surface);
     return texture;
 }
+
+Texture *create_bitmap(const char *name, const unsigned char *data, int width, int height) {
+    Texture *texture = alloc(Texture);
+    texture->filename = name;
+    array_add(&textures, texture);
+    texture->width = width;
+    texture->height = height;
+    glGenTextures(1, &texture->id);
+    glBindTexture(GL_TEXTURE_2D, texture->id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    
+    return texture;
+}

@@ -44,7 +44,7 @@ Load_File_Result load_entire_file(const char *filename) {
 	len = ftell(f);
 	fseek(f, 0, SEEK_SET);
     
-	char *buffer = allocn(char, len + 1);
+	unsigned char *buffer = allocn(unsigned char, len + 1);
 	fread_s((void*)buffer, len + 1, len, 1, f);
 	buffer[len] = 0;
     

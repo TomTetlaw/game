@@ -3,6 +3,7 @@
 #pragma comment(lib, "../lib/glew32.lib")
 #pragma comment(lib, "opengl32.lib")
 #define STB_IMAGE_IMPLEMENTATION
+#define STB_TRUETYPE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #define SDL_MAIN_HANDLED
 #include "includes.h"
