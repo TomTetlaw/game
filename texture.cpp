@@ -13,6 +13,71 @@ void tex_shutdown() {
     for(int i = 0; i < textures.count; i++) unload_texture(textures[i]);
 }
 
+void create_texture_data(Texture *texture, const unsigned char *data, int width, int height) {
+	unsigned int t;
+	glGenTextures(1, &t);
+	glBindTexture(GL_TEXTURE_2D, t);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void *)data);
+    
+	texture->width = width;
+	texture->height = height;
+	texture->id = t;
+}
+
+void create_texture_data_from_surface(Texture *texture, SDL_Surface *surf) {
+	if (!surf) {
+		return;
+	}
+    
+	if (surf->format->format != SDL_PIXELFORMAT_RGBA8888) {
+		SDL_PixelFormat format = { 0 };
+		format.BitsPerPixel = 32;
+		format.BytesPerPixel = 4;
+		format.format = SDL_PIXELFORMAT_RGBA8888;
+		format.Rshift = 0;
+		format.Gshift = 8;
+		format.Bshift = 16;
+		format.Ashift = 24;
+		format.Rmask = 0xff << format.Rshift;
+		format.Gmask = 0xff << format.Gshift;
+		format.Bmask = 0xff << format.Bshift;
+		format.Amask = 0xff << format.Ashift;
+        
+		SDL_Surface *newSurf = SDL_ConvertSurface(surf, &format, 0);
+		SDL_FreeSurface(surf);
+		surf = newSurf;
+	}
+    
+	unsigned int t;
+	glGenTextures(1, &t);
+	glBindTexture(GL_TEXTURE_2D, t);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surf->w, surf->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, surf->pixels);
+    
+#if 0
+    if(texture->filename) {
+        char buffer[1024] = {0};
+        sprintf(buffer, "%s.png", texture->filename);
+        if(!stbi_write_png(buffer, surf->w, surf->h, 4, surf->pixels, surf->w*4)) printf("image write failed: %s.\n", stbi_failure_reason());
+    }
+#endif
+                   
+	texture->width = surf->w;
+	texture->height = surf->h;
+	texture->id = t;
+    
+    SDL_FreeSurface(surf);
+}
+
 bool load_texture_base(const char *filename, uint *id, int *width, int *height) {
     unsigned char *pixels = stbi_load(filename, width, height, 0, STBI_rgb_alpha);
     if(pixels == null) {
@@ -54,5 +119,21 @@ Texture *load_texture(const char *filename) {
     array_add(&textures, texture);
     hotload_add_file(filename, (void *)texture, texture_hotload_callback);
     
+    return texture;
+}
+
+Texture *create_texture(const char *name, const unsigned char *data, int width, int height) {
+	Texture *texture = alloc(Texture);
+	texture->filename = name;
+	array_add(&textures, texture);
+	create_texture_data(texture, data, width, height);
+    return texture;
+}
+
+Texture *create_texture_from_surface(const char *name, SDL_Surface *surface) {
+	Texture *texture = alloc(Texture);
+	texture->filename = name;
+	array_add(&textures, texture);
+	create_texture_data_from_surface(texture, surface);
     return texture;
 }

@@ -25,6 +25,8 @@ int main(int argc, char *argv[]) {
     hotload_init();
     ent_init();
     
+    Font *font = load_font("data/fonts/consolas.ttf", 16);
+    
     SDL_Event event;
     bool should_quit = false;
     float prev_time = SDL_GetTicks() / 1000.0f;
@@ -47,7 +49,8 @@ int main(int argc, char *argv[]) {
         }
         
         r_begin_frame();
-        r_end_frame();
+        r_render_string(Vec2(100, 100), "Hello, world!");
+        r_end_frame();        
     }
         
     return 0;

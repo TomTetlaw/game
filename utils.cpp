@@ -5,6 +5,7 @@ float delta_time = 0.0f;
 Vec2 cursor_position;
 
 void quit() {
+    font_shutdown();
     ent_shutdown();
     hotload_shutdown();
     r_shutdown();

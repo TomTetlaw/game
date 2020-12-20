@@ -51,4 +51,9 @@ void set_program(Program *program);
 
 void r_render_texture(Texture *texture, Vec2 position);
 
+struct Font;
+void r_render_string(Vec2 position, const char *text, Vec4 colour = Vec4(1, 1, 1, 1), Font *font = nullptr, float wrap = -1.0f);
+void r_render_string_format(Vec2 position, Vec4 colour, Font *font, float wrap, const char *text, ...);
+void r_render_string_format_lazy(Vec2 position, const char *text, ...);
+
 #endif

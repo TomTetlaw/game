@@ -18,6 +18,8 @@ internal Array<Vertex> verts_buffer;
 internal Array<unsigned int> indices_buffer;
 internal Array<Render_Command> commands;
 
+internal Program prog_textured;
+
 internal Program *current_program = null;
 
 int window_width = 1366;
@@ -69,6 +71,9 @@ void r_init() {
     transformation_matrix = create_identity_matrix();
 	worldview_matrix = create_identity_matrix();
 	projection_matrix = create_identity_matrix();
+    
+    setup_program(&prog_textured, "data/shaders/passthrough.vert", "data/shaders/passthrough.frag");
+    set_program(&prog_textured);
 }
 
 void r_shutdown() {
@@ -176,6 +181,45 @@ void r_render_texture(Texture *texture, Vec2 position) {
     array_add(&commands, rc);
 }
 
+void r_render_string(Vec2 position, const char *text, Vec4 colour, Font *font, float wrap) {
+	if (!font) {
+		font = load_font("data/fonts/consolas.ttf", 16);
+	}    
+}
+
+void r_render_string_format(Vec2 position, Vec4 colour, Font *font, float wrap, const char *text, ...) {
+	//@todo: make this better?
+	constexpr int max_string_length = 1024;
+    
+	va_list argptr;
+	char message[max_string_length];
+    
+	assert(strlen(text) < max_string_length, "");
+    
+	va_start(argptr, text);
+	vsnprintf_s(message, 1024, text, argptr);
+	va_end(argptr);
+    
+	r_render_string(position, message, colour, font, wrap);
+}
+
+// if you don't want to think about colour/font/wrap the default values will be same as those in render_string
+void r_render_string_format_lazy(Vec2 position, const char *text, ...) {
+	//@todo: make this better?
+	constexpr int max_string_length = 1024;
+    
+	va_list argptr;
+	char message[max_string_length];
+    
+	assert(strlen(text) < max_string_length, "");
+    
+	va_start(argptr, text);
+	vsnprintf_s(message, 1024, text, argptr);
+	va_end(argptr);
+    
+	r_render_string(position, message);
+}
+
 void set_program(Program *program) {
 	current_program = program;
 }
@@ -220,6 +264,18 @@ void r_execute_commands() {
     
 	glUniform1i(sampler_loc, 0);
     
+#if 0
+    FILE *f = fopen("verts_log.log", "w");
+    for(int i = 0; i < verts_buffer.count; i++) fprintf(f, "[%f, %f]\n", verts_buffer[i].position.x, verts_buffer[i].position.y);
+    fclose(f);
+    f = fopen("indices_log.log", "w");
+    for(int i = 0; i < indices_buffer.count; i++) fprintf(f, "%d\n", indices_buffer[i]);
+    fclose(f);
+    f = fopen("render_commands.log", "w");
+    for(int i = 0; i < commands.count; i++) fprintf(f, "%d: first_index=%d\n", i, commands[i].texture.first_index);
+    fclose(f);
+#endif
+    
 	assert(verts_buffer.count < MAX_VERTICIES, "ran out of verts!");
 	assert(indices_buffer.count < MAX_INDICES, "ran out of indices!");
 	glBufferSubData(GL_ARRAY_BUFFER, 0, verts_buffer.count * sizeof(Vertex), verts_buffer.data);
@@ -238,7 +294,7 @@ void r_execute_commands() {
 			glUniformMatrix4fv(worldview_matrix_loc, 1, GL_FALSE, worldview_matrix.e);
             
 			glBindTexture(GL_TEXTURE_2D, rc->texture.texture->id);
-			glDrawRangeElements(GL_TRIANGLES, rc->texture.first_index, rc->texture.first_index + 6, 6, GL_UNSIGNED_INT, nullptr);
+            glDrawElementsBaseVertex(GL_TRIANGLES, 6, GL_UNSIGNED_INT, null, rc->texture.first_index);
 			glBindTexture(GL_TEXTURE_2D, 0);
         }
 	}
