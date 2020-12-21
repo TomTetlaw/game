@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
         
         r_begin_frame();
         r_render_string(Vec2(100, 100), "Hello, world!");
-        r_render_texture(font->texture, Vec2(0, 0));
+        //r_render_texture(font->texture, Vec2(0, 0));
         r_end_frame();        
     }
         

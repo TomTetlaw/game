@@ -27,7 +27,7 @@ template<typename T> void array_reserve(Array<T> *array, int new_size) {
 }
 
 template<typename T> void array_add(Array<T> *array, const T &value) {
-    array_reserve(array, array->size + 1);
+    array_reserve(array, array->count + 1);
     memcpy(&array->data[array->count], &value, sizeof(T));
     array->count++;
 }
