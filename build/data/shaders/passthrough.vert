@@ -20,7 +20,7 @@ void main(void) {
 	position = projection_matrix * worldview_matrix * transformation_matrix * vec4(vertex_position, 1);
 
 	colour = vertex_colour;  
-	tex_coord = vertex_tex_coord.xy;
+	tex_coord = vertex_tex_coord;
 	normal = vertex_normal;
 
 	gl_Position = position;

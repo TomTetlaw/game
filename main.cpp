@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
     hotload_init();
     ent_init();
     
-    Font *font = load_font("data/fonts/consolas.ttf", 16);
+    Texture *test = load_texture("data/textures/test.jpg");
     
     SDL_Event event;
     bool should_quit = false;
@@ -49,8 +49,9 @@ int main(int argc, char *argv[]) {
         }
         
         r_begin_frame();
-        r_render_string(Vec2(100, 100), "Hello, world!");
-        //r_render_texture(font->texture, Vec2(0, 0));
+        r_render_string(Vec2(100, 100), "Hello, world! This is a message that is not rendering correctly, but when it does this will be wrong, go figure");
+        r_render_texture(load_font("data/fonts/consolas.ttf", 16)->texture, Vec2(300, 300));
+        r_render_texture(test, Vec2(500,500));
         r_end_frame();        
     }
         

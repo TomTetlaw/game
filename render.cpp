@@ -137,7 +137,7 @@ int add_verts(Vertex *verts, int num_verts, unsigned int *indices, int num_indic
     array_reserve(&verts_buffer, verts_buffer.count + num_verts);
     array_reserve(&indices_buffer, indices_buffer.count + num_indices);
     
-	int first_index = indices_buffer.count;
+	int first_index = verts_buffer.count;
 	for(int i = 0; i < num_indices; i++) array_add(&indices_buffer, indices[i]);
 	for(int i = 0; i < num_verts; i++) array_add(&verts_buffer, verts[i]);
     
@@ -169,8 +169,8 @@ void r_render_texture(Texture *texture, Vec2 position) {
 	indicies[1] = 1;
 	indicies[2] = 2;
 	indicies[3] = 0;
-	indicies[4] = 2;
-	indicies[5] = 3;
+	indicies[4] = 3;
+	indicies[5] = 2;
     
 	int first_index = add_verts(verts, 4, indicies, 6);
     
@@ -183,24 +183,30 @@ void r_render_texture(Texture *texture, Vec2 position) {
 
 void r_render_string(Vec2 position, const char *text, Vec4 colour, Font *font, float wrap) {
 	if (!font) {
-		font = load_font("data/fonts/consolas.ttf", 16);
+		font = load_font("data/fonts/consolas.ttf", 32);
 	}
+    
+    FILE *f = fopen("quads.log", "w");
+    defer { fclose(f); };
     
     int length = (int)strlen(text);
     for(int i = 0; i < length; i++) {
+        if(text[i] < 32 || text[i] >= 128) continue;
+        
         int c = text[i] - 32;
+        
         stbtt_aligned_quad q;
-        stbtt_GetBakedQuad(font->glyphs, font->texture->width, font->texture->height, c, &position.x, &position.y, &q, 1);
+        stbtt_GetPackedQuad(font->glyphs, font->texture->width, font->texture->height, c, &position.x, &position.y, &q, 1);
         
         Vertex verts[4];
     	verts[0].position = Vec3(q.x0, q.y0, 0);
-    	verts[1].position = Vec3(q.x1, q.y0, 0);
+    	verts[1].position = Vec3(q.x0, q.y1, 0);
     	verts[2].position = Vec3(q.x1, q.y1, 0);
-    	verts[3].position = Vec3(q.x0, q.y1, 0);
-    	verts[0].uv = Vec2(q.s0, q.t1);
-    	verts[1].uv = Vec2(q.s1, q.t1);
-    	verts[2].uv = Vec2(q.s1, q.t0);
-    	verts[3].uv = Vec2(q.s0, q.t0);
+    	verts[3].position = Vec3(q.x1, q.y0, 0);
+    	verts[0].uv = Vec2(q.s0, q.t0);
+    	verts[1].uv = Vec2(q.s0, q.t1);
+    	verts[2].uv = Vec2(q.s1, q.t1);
+    	verts[3].uv = Vec2(q.s1, q.t0);
     	verts[0].colour = Vec4(1, 1, 1, 1);
     	verts[1].colour = Vec4(1, 1, 1, 1);
     	verts[2].colour = Vec4(1, 1, 1, 1);
@@ -211,8 +217,8 @@ void r_render_string(Vec2 position, const char *text, Vec4 colour, Font *font, f
     	indicies[1] = 1;
     	indicies[2] = 2;
     	indicies[3] = 0;
-    	indicies[4] = 2;
-        indicies[5] = 3;
+    	indicies[4] = 3;
+        indicies[5] = 2;
        
         Render_Command rc;
         rc.type = RC_TEXTURE;
@@ -299,7 +305,7 @@ void r_execute_commands() {
     
 	glUniform1i(sampler_loc, 0);
     
-#if 0
+#if 1
     FILE *f = fopen("verts_log.log", "w");
     for(int i = 0; i < verts_buffer.count; i++) fprintf(f, "[%f, %f]\n", verts_buffer[i].position.x, verts_buffer[i].position.y);
     fclose(f);
@@ -328,6 +334,7 @@ void r_execute_commands() {
 			glUniformMatrix4fv(projection_matrix_loc, 1, GL_FALSE, projection_matrix.e);
 			glUniformMatrix4fv(worldview_matrix_loc, 1, GL_FALSE, worldview_matrix.e);
             
+            glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, rc->texture.texture->id);
             glDrawElementsBaseVertex(GL_TRIANGLES, 6, GL_UNSIGNED_INT, null, rc->texture.first_index);
 			glBindTexture(GL_TEXTURE_2D, 0);

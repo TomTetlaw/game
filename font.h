@@ -7,7 +7,7 @@ struct Font {
     
     Texture *texture = nullptr;
     stbtt_fontinfo  info;
-    stbtt_bakedchar glyphs[96]; // ASCII 32-126
+    stbtt_packedchar glyphs[127];
 };
 
 void font_shutdown();
