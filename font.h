@@ -13,4 +13,6 @@ struct Font {
 void font_shutdown();
 Font *load_font(const char *filename, int point_size);
 
+Vec2 get_string_size(Font *font, const char *string);
+
 #endif

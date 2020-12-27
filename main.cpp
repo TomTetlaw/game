@@ -25,8 +25,6 @@ int main(int argc, char *argv[]) {
     hotload_init();
     ent_init();
     
-    Texture *test = load_texture("data/textures/test.jpg");
-    
     SDL_Event event;
     bool should_quit = false;
     float prev_time = SDL_GetTicks() / 1000.0f;
@@ -42,17 +40,25 @@ int main(int argc, char *argv[]) {
         cursor_position = Vec2(x, y);
         
         SDL_PollEvent(&event);
-        switch(event.type) {
-        case SDL_QUIT:
-            quit();
-            break;
+        if(!ui_process_event(&event)) {
+            switch(event.type) {
+            case SDL_QUIT:
+                quit();
+                break;
+            }
         }
         
-        r_begin_frame();
-        r_render_string(Vec2(100, 100), "Hello, world! This is a message that is not rendering correctly, but when it does this will be wrong, go figure");
-        r_render_texture(load_font("data/fonts/consolas.ttf", 16)->texture, Vec2(300, 300));
-        r_render_texture(test, Vec2(500,500));
-        r_end_frame();        
+        ui_begin(Vec2(100, 100));
+        ui_label("Hello, world 1!");
+        ui_label("Hello, world 2!");
+        ui_label("Hello, world 3!");
+        ui_label("Hello, world 4!");
+        ui_label("Hello, world 5!");
+        ui_label("Hello, world 6!");
+        r_render_box(Vec2(100, 100), Vec2(100, 100)); // this renders as black because it uses the wrong shader, need to refactor the way that shaders are set so that each command has a pointer to the correct shader to use, in the future we should sort the commands by which shader it uses to reduce the number of calls to glUseProgram
+        ui_end();
+        
+        r_render_frame();
     }
         
     return 0;

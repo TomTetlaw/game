@@ -22,5 +22,6 @@
 #include "hotload.h"
 #include "entity.h"
 #include "entity_types.h"
+#include "ui.h"
 
 #endif

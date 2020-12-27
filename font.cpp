@@ -23,7 +23,7 @@ Font *load_font(const char *filename, int point_size) {
     font_info = alloc(Font);
     
     int bitmap_width = 512;
-    int bitmap_height = 100;
+    int bitmap_height = 50;
     unsigned char *bitmap = allocn(unsigned char, bitmap_width * bitmap_height);
     defer { free(bitmap); };
     
@@ -39,4 +39,19 @@ Font *load_font(const char *filename, int point_size) {
     array_add(&fonts, font_info);
     
     return font_info;
+}
+
+Vec2 get_string_size(Font *font, const char *string) {
+    if(!font) font = load_font("data/fonts/consolas.ttf", 16);
+    
+    Vec2 position;
+    int length = (int)strlen(string);
+    for(int i = 0; i < length; i++) {
+        int c = string[i] - 32;
+        stbtt_aligned_quad q;
+        stbtt_GetPackedQuad(font->glyphs, font->texture->width, font->texture->height, c, &position.x, &position.y, &q, 1);
+    }
+    
+    position.y = font->point_size;
+    return position;
 }

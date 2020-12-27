@@ -22,8 +22,13 @@ struct RC_Texture {
 	int first_index = 0;
 };
 
+struct RC_Quad {
+    int first_index = 0;
+};
+
 enum Render_Command_Type {
 	RC_TEXTURE,
+    RC_QUAD,
 };
 
 struct Render_Command {
@@ -33,6 +38,7 @@ struct Render_Command {
     
 	union {
 		RC_Texture texture;
+        RC_Quad quad;
 	};
 };
 
@@ -43,8 +49,7 @@ void r_init();
 void r_shutdown();
 void r_execute_commands();
 
-void r_begin_frame();
-void r_end_frame();
+void r_render_frame();
 
 void setup_program(Program *program, const char *vert_filename, const char *frag_filename);
 void set_program(Program *program);
@@ -55,5 +60,7 @@ struct Font;
 void r_render_string(Vec2 position, const char *text, Vec4 colour = Vec4(1, 1, 1, 1), Font *font = nullptr, float wrap = -1.0f);
 void r_render_string_format(Vec2 position, Vec4 colour, Font *font, float wrap, const char *text, ...);
 void r_render_string_format_lazy(Vec2 position, const char *text, ...);
+
+void r_render_box(Vec2 position, Vec2 size, Vec4 colour = Vec4(1, 1, 1, 1));
 
 #endif
