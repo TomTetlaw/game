@@ -19,8 +19,7 @@ internal Array<unsigned int> indices_buffer;
 internal Array<Render_Command> commands;
 
 internal Program prog_textured;
-
-internal Program *current_program = null;
+internal Program prog_passthrough;
 
 int window_width = 1366;
 int window_height = 768;
@@ -72,9 +71,8 @@ void r_init() {
 	worldview_matrix = create_identity_matrix();
 	projection_matrix = create_identity_matrix();
     
-    setup_program(&prog_textured, "data/shaders/passthrough.vert", "data/shaders/passthrough.frag");
-
-    set_program(&prog_textured);
+    setup_program(&prog_textured, "data/shaders/textured.vert", "data/shaders/textured.frag");
+    setup_program(&prog_passthrough, "data/shaders/passthrough.vert", "data/shaders/passthrough.frag");
 }
 
 void r_shutdown() {
@@ -160,10 +158,10 @@ void r_render_box(Vec2 position, Vec2 size, Vec4 colour) {
 	verts[1].uv = Vec2(0, 1);
 	verts[2].uv = Vec2(1, 1);
 	verts[3].uv = Vec2(1, 0);
-	verts[0].colour = Vec4(1, 1, 1, 1);
-	verts[1].colour = Vec4(1, 1, 1, 1);
-	verts[2].colour = Vec4(1, 1, 1, 1);
-	verts[3].colour = Vec4(1, 1, 1, 1);
+	verts[0].colour = colour;
+	verts[1].colour = colour;
+	verts[2].colour = colour;
+	verts[3].colour = colour;
     
 	unsigned int indicies[6];
 	indicies[0] = 0;
@@ -175,7 +173,8 @@ void r_render_box(Vec2 position, Vec2 size, Vec4 colour) {
     
     Render_Command rc;
     rc.type = RC_QUAD;
-    rc.quad.first_index = add_verts(verts, 4, indicies, 6);
+    rc.first_index = add_verts(verts, 4, indicies, 6);
+    rc.program = &prog_passthrough;
     array_add(&commands, rc);
 }
 
@@ -211,18 +210,21 @@ void r_render_texture(Texture *texture, Vec2 position) {
     
 	Render_Command rc;
 	rc.type = RC_TEXTURE;
-	rc.texture.first_index = first_index;
+	rc.first_index = first_index;
+    rc.program = &prog_textured;
 	rc.texture.texture = texture;
     array_add(&commands, rc);
 }
 
 void r_render_string(Vec2 position, const char *text, Vec4 colour, Font *font, float wrap) {
 	if (!font) {
-		font = load_font("data/fonts/consolas.ttf", 32);
+		font = load_font("data/fonts/consolas.ttf", 16);
 	}
     
     FILE *f = fopen("quads.log", "w");
     defer { fclose(f); };
+    
+    position.y += font->size;
     
     int length = (int)strlen(text);
     for(int i = 0; i < length; i++) {
@@ -257,7 +259,8 @@ void r_render_string(Vec2 position, const char *text, Vec4 colour, Font *font, f
        
         Render_Command rc;
         rc.type = RC_TEXTURE;
-        rc.texture.first_index = add_verts(verts, 4, indicies, 6);
+        rc.first_index = add_verts(verts, 4, indicies, 6);
+        rc.program = &prog_textured;
         rc.texture.texture = font->texture;
         array_add(&commands, rc);
     }
@@ -296,10 +299,6 @@ void r_render_string_format_lazy(Vec2 position, const char *text, ...) {
 	r_render_string(position, message);
 }
 
-void set_program(Program *program) {
-	current_program = program;
-}
-
 void hotload_vertex_callback(const char *filename, void *data) {
 	Program *program = (Program *)data;
 	
@@ -329,54 +328,43 @@ void setup_program(Program *program, const char *vertex_filename, const char *fr
 }
 
 void r_execute_commands() {
-    if(!current_program) return;
-    
-	int sampler_loc = glGetUniformLocation(current_program->program_object, "diffuse_texture");
-	int projection_matrix_loc = glGetUniformLocation(current_program->program_object, "projection_matrix");
-	int worldview_matrix_loc = glGetUniformLocation(current_program->program_object, "worldview_matrix");
-	int transformation_matrix_loc = glGetUniformLocation(current_program->program_object, "transformation_matrix");
-	int diffuse_loc = glGetUniformLocation(current_program->program_object, "diffuse_colour");
-	int time_loc = glGetUniformLocation(current_program->program_object, "time");
-    
-	glUniform1i(sampler_loc, 0);
-    
-#if 1
-    FILE *f = fopen("verts_log.log", "w");
-    for(int i = 0; i < verts_buffer.count; i++) fprintf(f, "[%f, %f]\n", verts_buffer[i].position.x, verts_buffer[i].position.y);
-    fclose(f);
-    f = fopen("indices_log.log", "w");
-    for(int i = 0; i < indices_buffer.count; i++) fprintf(f, "%d\n", indices_buffer[i]);
-    fclose(f);
-    f = fopen("render_commands.log", "w");
-    for(int i = 0; i < commands.count; i++) fprintf(f, "%d: first_index=%d\n", i, commands[i].texture.first_index);
-    fclose(f);
-#endif
-    
 	assert(verts_buffer.count < MAX_VERTICIES, "ran out of verts!");
 	assert(indices_buffer.count < MAX_INDICES, "ran out of indices!");
 	glBufferSubData(GL_ARRAY_BUFFER, 0, verts_buffer.count * sizeof(Vertex), verts_buffer.data);
 	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, indices_buffer.count * sizeof(unsigned int), indices_buffer.data);
     
-	glUniform1f(time_loc, current_time);
-    
-    transformation_matrix = create_identity_matrix();
-    projection_matrix = create_ortho_matrix(0, window_width, window_height, 0);
-    worldview_matrix = create_identity_matrix();
-    glUniformMatrix4fv(transformation_matrix_loc, 1, GL_FALSE, transformation_matrix.e);
-    glUniformMatrix4fv(projection_matrix_loc, 1, GL_FALSE, projection_matrix.e);
-    glUniformMatrix4fv(worldview_matrix_loc, 1, GL_FALSE, worldview_matrix.e);
-    
 	for(int i = 0; i < commands.count; i++) {
         Render_Command *rc = &commands[i];
+        
+        glUseProgram(rc->program->program_object);
+        
+        int projection_matrix_loc = glGetUniformLocation(rc->program->program_object, "projection_matrix");
+        int worldview_matrix_loc = glGetUniformLocation(rc->program->program_object, "worldview_matrix");
+        int transformation_matrix_loc = glGetUniformLocation(rc->program->program_object, "transformation_matrix");
+        int diffuse_loc = glGetUniformLocation(rc->program->program_object, "diffuse_colour");
+        int time_loc = glGetUniformLocation(rc->program->program_object, "time");
+        glUniform1f(time_loc, current_time);
+        
+        transformation_matrix = create_identity_matrix();
+        projection_matrix = create_ortho_matrix(0, window_width, window_height, 0);
+        worldview_matrix = create_identity_matrix();
+        glUniformMatrix4fv(transformation_matrix_loc, 1, GL_FALSE, transformation_matrix.e);
+        glUniformMatrix4fv(projection_matrix_loc, 1, GL_FALSE, projection_matrix.e);
+        glUniformMatrix4fv(worldview_matrix_loc, 1, GL_FALSE, worldview_matrix.e);
+        
+        if(rc->program == &prog_textured) {
+            int sampler_loc = glGetUniformLocation(rc->program->program_object, "diffuse_texture");
+            glUniform1i(sampler_loc, 0);
+        }
         
 		if(rc->type == RC_TEXTURE) {
             glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, rc->texture.texture->id);
-            glDrawElementsBaseVertex(GL_TRIANGLES, 6, GL_UNSIGNED_INT, null, rc->texture.first_index);
+            glDrawElementsBaseVertex(GL_TRIANGLES, 6, GL_UNSIGNED_INT, null, rc->first_index);
 			glBindTexture(GL_TEXTURE_2D, 0);
         } else if (rc->type == RC_QUAD) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            glDrawElementsBaseVertex(GL_TRIANGLES, 6, GL_UNSIGNED_INT, null, rc->quad.first_index);
+            glDrawElementsBaseVertex(GL_TRIANGLES, 6, GL_UNSIGNED_INT, null, rc->first_index);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
 	}
@@ -393,8 +381,6 @@ void r_render_frame() {
 	}
     
 	glClear(GL_DEPTH_BUFFER_BIT);
-    
-	if(current_program) glUseProgram(current_program->program_object);
     
 	r_execute_commands();
     

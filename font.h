@@ -3,11 +3,12 @@
 
 struct Font {
     const char *filename = null;
-    int point_size = 0;
-    
+    int size = 0;
     Texture *texture = nullptr;
     stbtt_fontinfo  info;
     stbtt_packedchar glyphs[127];
+    float scale = 0.0f;
+    unsigned char *data = null;
 };
 
 void font_shutdown();

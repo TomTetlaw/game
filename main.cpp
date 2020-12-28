@@ -55,7 +55,6 @@ int main(int argc, char *argv[]) {
         ui_label("Hello, world 4!");
         ui_label("Hello, world 5!");
         ui_label("Hello, world 6!");
-        r_render_box(Vec2(100, 100), Vec2(100, 100)); // this renders as black because it uses the wrong shader, need to refactor the way that shaders are set so that each command has a pointer to the correct shader to use, in the future we should sort the commands by which shader it uses to reduce the number of calls to glUseProgram
         ui_end();
         
         r_render_frame();

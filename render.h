@@ -19,11 +19,9 @@ struct Vertex {
 struct Texture;
 struct RC_Texture {
 	Texture *texture = nullptr;
-	int first_index = 0;
 };
 
 struct RC_Quad {
-    int first_index = 0;
 };
 
 enum Render_Command_Type {
@@ -35,6 +33,8 @@ struct Render_Command {
 	Render_Command() {}
     
 	Render_Command_Type type;
+    int first_index = -1;
+    Program *program = null;
     
 	union {
 		RC_Texture texture;
@@ -52,7 +52,6 @@ void r_execute_commands();
 void r_render_frame();
 
 void setup_program(Program *program, const char *vert_filename, const char *frag_filename);
-void set_program(Program *program);
 
 void r_render_texture(Texture *texture, Vec2 position);
 
