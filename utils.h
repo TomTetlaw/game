@@ -88,6 +88,8 @@ struct Load_File_Result {
 
 Load_File_Result load_entire_file(const char *filename);
 
+bool point_box_intersection(Vec2 point, Vec2 boxp, Vec2 boxs, bool box_centered = false);
+
 extern SDL_Window *sdl_window;
 extern float current_time;
 extern float delta_time;

@@ -1,5 +1,32 @@
 #include "includes.h"
 
+struct My_Entity { // @entity_type
+    entity_stuff(My_Entity);
+};
+
+struct My_Entity1 { // @entity_type
+    entity_stuff(My_Entity1);
+};
+struct My_Entity2 { // @entity_type
+    entity_stuff(My_Entity2);
+};
+struct My_Entity3 { // @entity_type
+    entity_stuff(My_Entity3);
+};
+struct My_Entity4 { // @entity_type
+    entity_stuff(My_Entity4);
+};
+struct My_Entity5 { // @entity_type
+    entity_stuff(My_Entity5);
+};
+struct My_Entity6 { // @entity_type
+    entity_stuff(My_Entity6);
+};
+struct My_Entity7 { // @entity_type
+    entity_stuff(My_Entity7);
+};
+
+
 int main(int argc, char *argv[]) {
     if(SDL_Init(SDL_INIT_EVERYTHING) < 0) fatal_error("ERROR", "Could not initialize SDL2: %s", SDL_GetError());
     
@@ -25,6 +52,11 @@ int main(int argc, char *argv[]) {
     hotload_init();
     ent_init();
     
+    bool left_pressed = false;
+    bool right_pressed = false;
+    Vec2 context_position;
+    Entity *selected_entity = null;
+    
     SDL_Event event;
     bool should_quit = false;
     float prev_time = SDL_GetTicks() / 1000.0f;
@@ -39,23 +71,70 @@ int main(int argc, char *argv[]) {
         int x=0, y=0; SDL_GetMouseState(&x, &y);
         cursor_position = Vec2(x, y);
         
-        SDL_PollEvent(&event);
-        if(!ui_process_event(&event)) {
+        left_pressed = false;
+        right_pressed = false;
+        
+        while(SDL_PollEvent(&event)) {
+            ui_process_event(&event);
+            if(ui_wants_mouse_input || ui_wants_keyboard_input) continue;
+            
             switch(event.type) {
             case SDL_QUIT:
                 quit();
                 break;
+            case SDL_MOUSEBUTTONDOWN:
+                if(event.button.button == SDL_BUTTON_RIGHT) right_pressed = true;
+                if(event.button.button == SDL_BUTTON_LEFT) left_pressed = true;
+                break;
             }
         }
         
-        ui_begin(Vec2(100, 100));
-        ui_label("Hello, world 1!");
-        ui_label("Hello, world 2!");
-        ui_label("Hello, world 3!");
-        ui_label("Hello, world 4!");
-        ui_label("Hello, world 5!");
-        ui_label("Hello, world 6!");
-        ui_end();
+        ui_begin_frame();
+        
+        static bool context_menu_open = false;
+        if(right_pressed) {
+            context_menu_open = true;
+            context_position = cursor_position;
+            
+            for(int i = 0; i < entities.size; i++) {
+                if(!entities.filled[i]) continue;
+                if(entities[i].remove_me) continue;
+                Entity *entity = &entities[i];
+                
+                if(point_box_intersection(cursor_position, entity->position, Vec2(entity->texture->width, entity->texture->height), true)) {
+                    selected_entity = entity;
+                    break;
+                }
+            }
+        }
+        
+        ent_update();
+        ent_render();
+        
+        if(left_pressed) {
+            context_menu_open = false;
+            selected_entity = null;
+        }
+        
+        if(context_menu_open) {
+            ui_begin(context_position);
+            
+            if(selected_entity) {
+                if(ui_button("Remove")) ent_remove_base(selected_entity);
+            } else {
+                for(int i = 0; i < num_entity_types; i++) {
+                    if(ui_button(entity_type_names[i])) {
+                        Entity *ent = ent_create_from_name(entity_type_names[i]);
+                        ent->position = cursor_position;
+                        ent->texture = load_texture("data/textures/test.jpg");
+                    }
+                }
+            }
+            
+            ui_end();
+        }
+        
+        ui_end_frame();
         
         r_render_frame();
     }

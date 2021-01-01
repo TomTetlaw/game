@@ -52,3 +52,21 @@ Load_File_Result load_entire_file(const char *filename) {
 	result.length = len;
 	return result;
 }
+
+bool point_box_intersection(Vec2 point, Vec2 boxp, Vec2 boxs, bool box_centered) {
+    if(box_centered) {
+        float halfw = boxs.x / 2;
+        float halfh = boxs.y / 2;
+        if(point.x < boxp.x - halfw) return false;
+        if(point.y < boxp.y - halfh) return false;
+        if(point.x > boxp.x + halfw) return false;
+        if(point.y > boxp.y + halfh) return false;
+    } else {
+        if(point.x < boxp.x) return false;
+        if(point.y < boxp.y) return false;
+        if(point.x > boxp.x + boxs.x) return false;
+        if(point.y > boxp.y + boxs.y) return false;
+    }
+    
+    return true;
+}

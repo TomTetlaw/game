@@ -1,6 +1,6 @@
 #include "includes.h"
 
-internal Contiguous_Array<Entity, entities_per_list> entities;
+Contiguous_Array<Entity, entities_per_list> entities;
 
 internal int next_parity = 0;
 
@@ -31,6 +31,7 @@ T *_ent_create() {
     T *derived = carray_alloc(&T::_list, &derived_index);
     derived->base = entity;
     entity->derived_index = derived_index;
+    entity->derived = derived;
     
     return derived;
 }
@@ -46,7 +47,7 @@ Entity *ent_get_from_handle(ehandle handle) {
 
 template<typename T>
 void ent_remove(T *entity) {
-    assert(entity->index > 0, "trying to remove an entity that hasn't been added yet");
+    assert(entity->base->index >= 0, "trying to remove an entity that hasn't been added yet");
     carray_remove(&T::_list, entity->base->derived_index);
     carray_remove(&entities, entity->base->index);
 }
@@ -58,4 +59,24 @@ inline T *_ent_downcast(Entity *base) {
         return null;
     }
     return &T::_list[base->derived_index];
+}
+
+void ent_update() {
+    for(int i = 0; i < entities.size; i++) {
+        if(!entities.filled[i]) continue;
+        if(entities[i].remove_me) continue;
+        Entity *entity = &entities[i];
+        
+// @todo        if(entity->remove_me) ent_remove(
+    }
+}
+
+void ent_render() {
+    for(int i = 0; i < entities.size; i++) {
+        if(!entities.filled[i]) continue;
+        if(entities[i].remove_me) continue;
+        Entity *entity = &entities[i];
+        
+        r_render_texture(entity->texture, entity->position);
+    }
 }

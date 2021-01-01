@@ -20,6 +20,7 @@ internal Array<Render_Command> commands;
 
 internal Program prog_textured;
 internal Program prog_passthrough;
+internal Program prog_text;
 
 int window_width = 1366;
 int window_height = 768;
@@ -71,6 +72,7 @@ void r_init() {
 	worldview_matrix = create_identity_matrix();
 	projection_matrix = create_identity_matrix();
     
+    setup_program(&prog_text, "data/shaders/text.vert", "data/shaders/text.frag");
     setup_program(&prog_textured, "data/shaders/textured.vert", "data/shaders/textured.frag");
     setup_program(&prog_passthrough, "data/shaders/passthrough.vert", "data/shaders/passthrough.frag");
 }
@@ -244,10 +246,10 @@ void r_render_string(Vec2 position, const char *text, Vec4 colour, Font *font, f
     	verts[1].uv = Vec2(q.s0, q.t1);
     	verts[2].uv = Vec2(q.s1, q.t1);
     	verts[3].uv = Vec2(q.s1, q.t0);
-    	verts[0].colour = Vec4(1, 1, 1, 1);
-    	verts[1].colour = Vec4(1, 1, 1, 1);
-    	verts[2].colour = Vec4(1, 1, 1, 1);
-    	verts[3].colour = Vec4(1, 1, 1, 1);
+    	verts[0].colour = colour;
+    	verts[1].colour = colour;
+    	verts[2].colour = colour;
+    	verts[3].colour = colour;
     
     	unsigned int indicies[6];
     	indicies[0] = 0;
@@ -260,7 +262,7 @@ void r_render_string(Vec2 position, const char *text, Vec4 colour, Font *font, f
         Render_Command rc;
         rc.type = RC_TEXTURE;
         rc.first_index = add_verts(verts, 4, indicies, 6);
-        rc.program = &prog_textured;
+        rc.program = &prog_text;
         rc.texture.texture = font->texture;
         array_add(&commands, rc);
     }
@@ -352,7 +354,7 @@ void r_execute_commands() {
         glUniformMatrix4fv(projection_matrix_loc, 1, GL_FALSE, projection_matrix.e);
         glUniformMatrix4fv(worldview_matrix_loc, 1, GL_FALSE, worldview_matrix.e);
         
-        if(rc->program == &prog_textured) {
+        if(rc->program == &prog_textured || rc->program == &prog_text) {
             int sampler_loc = glGetUniformLocation(rc->program->program_object, "diffuse_texture");
             glUniform1i(sampler_loc, 0);
         }
@@ -363,9 +365,7 @@ void r_execute_commands() {
             glDrawElementsBaseVertex(GL_TRIANGLES, 6, GL_UNSIGNED_INT, null, rc->first_index);
 			glBindTexture(GL_TEXTURE_2D, 0);
         } else if (rc->type == RC_QUAD) {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             glDrawElementsBaseVertex(GL_TRIANGLES, 6, GL_UNSIGNED_INT, null, rc->first_index);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
 	}
     

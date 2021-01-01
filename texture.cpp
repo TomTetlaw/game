@@ -63,14 +63,6 @@ void create_texture_data_from_surface(Texture *texture, SDL_Surface *surf) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surf->w, surf->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, surf->pixels);
     
-#if 0
-    if(texture->filename) {
-        char buffer[1024] = {0};
-        sprintf(buffer, "%s.png", texture->filename);
-        if(!stbi_write_png(buffer, surf->w, surf->h, 4, surf->pixels, surf->w*4)) printf("image write failed: %s.\n", stbi_failure_reason());
-    }
-#endif
-                   
 	texture->width = surf->w;
 	texture->height = surf->h;
 	texture->id = t;
@@ -116,6 +108,7 @@ Texture *load_texture(const char *filename) {
     texture->id = id;
     texture->width = width;
     texture->height = height;
+    texture->filename = filename;
     array_add(&textures, texture);
     hotload_add_file(filename, (void *)texture, texture_hotload_callback);
     

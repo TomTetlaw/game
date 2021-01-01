@@ -53,6 +53,39 @@ def process_entity_types():
 		for name in type_names:
 			f.write("Entity_Type " + name + "::_tag;\n")
 
+		f.write("void ent_remove_base(Entity *entity) {\n")
+		f.write("\tswitch(entity->tag) {\n");
+		for name in type_names:
+			f.write("\tcase Entity_Type::_" + name + ": {\n")
+			f.write("\t\t\t" + name + " *derived = (" + name + " *)entity->derived;\n")
+			f.write("\t\t\tent_remove(derived);\n")
+			f.write("\t\t} break;\n")
+		f.write("\t}\n")
+		f.write("}\n")
+
+		f.write("Entity *ent_create_from_name(const char *type_name) {\n")
+		for name in type_names:
+			f.write("\tif(!strcmp(type_name, \"" + name + "\")) {\n")
+			f.write("\t\treturn ent_create(" + name + ")->base;\n")
+			f.write("\t}\n")
+		f.write("\n\treturn null;\n")
+		f.write("}\n")
+
+		f.write("const char *entity_type_names[] = {\n")
+		for name in type_names:
+			f.write("\t\"" + name + "\",\n")
+		f.write("};\n")
+
+		f.write("int num_entity_types = " + str(len(type_names)) + ";\n")
+
+#Entity ent_create_from_name(const char *type_name) {
+#	if(!strcmp(type_name, "My_Entity)) {
+#		return ent_create(My_Entity)->base;
+#	}
+#	
+#	return null;
+#}
+
 	with open("entity_generated.h", 'w') as f:
 		f.write("#ifndef GENERATED_H\n")
 		f.write("#define GENERATED_H\n")
@@ -63,8 +96,14 @@ def process_entity_types():
 			f.write("\t_" + name + ",\n")
 		f.write("};\n")
 
-		f.write("#endif\n")
+		f.write("extern int num_entity_types;\n")
 
-		
+		f.write("extern const char *entity_type_names[];\n")
+
+		f.write("struct Entity;\n")
+		f.write("void ent_remove_base(Entity *entity);\n")
+		f.write("Entity *ent_create_from_name(const char *type_name);\n")
+
+		f.write("#endif\n")
 
 process_entity_types()

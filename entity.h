@@ -14,17 +14,23 @@ struct Entity {
     int derived_index = -1;
     
     Entity_Type tag;
+    void *derived = null;
     
     Vec2 position;
     Texture *texture = null;
+    
+    bool remove_me = false;
 };
 
 const int entities_per_list = 1024;
+extern Contiguous_Array<Entity, entities_per_list> entities;
 
 #define entity_stuff(T) static Entity_Type _tag; static Contiguous_Array<T, entities_per_list> _list; Entity *base = null;
 
 void ent_init();
 void ent_shutdown();
+void ent_update();
+void ent_render();
 
 #define ent_create(T) _ent_create<T>()
 template<typename T>
