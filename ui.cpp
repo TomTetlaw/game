@@ -1,33 +1,33 @@
 #include "includes.h"
 
+struct UI_Label {
+    Vec2 position;
+    Vec2 size;
+    char text[1024] = {0};
+    Vec4 colour = Vec4(1,1,1,1);
+    bool hovering = false;
+};
+
+struct UI_Box {
+    Vec2 position;
+    Vec2 size;
+    Vec4 colour = Vec4(127/255.0f, 122/255.0f, 255/255.0f, 0.2f);
+};
+
 struct UI_Context {
     int id = -1;
     Vec2 origin;
     Vec2 bounds;
     Vec2 offset;
+    Array<UI_Label> labels;
+    Array<UI_Box> boxes;
+    int currently_hovering = -1;
 };
 
 internal Array<UI_Context> contexts;
 internal int current_context = -1;
 bool ui_wants_mouse_input = false;
 bool ui_wants_keyboard_input = false;
-
-struct UI_Label {
-    int context = -1;
-    Vec2 position;
-    char text[1024] = {0};
-    Vec4 colour = Vec4(1,1,1,1);
-};
-
-struct UI_Box {
-    int context = -1;
-    Vec2 position;
-    Vec2 size;
-    Vec4 colour = Vec4(127/255.0f, 122/255.0f, 255/255.0f, 0.2f);
-};
-
-internal Array<UI_Label> labels;
-internal Array<UI_Box> boxes;
 
 struct UI_Click {
     Vec2 position;
@@ -45,23 +45,26 @@ void ui_end_frame() {
     for(int i = 0; i < contexts.count; i++) {
         UI_Context *context = &contexts[i];
         if(point_box_intersection(cursor_position, contexts[i].origin, context[i].bounds)) ui_wants_mouse_input = true;
-    }
         
-    for(int i = 0; i < boxes.count; i++) {
-        UI_Context *context = &contexts[boxes[i].context];
-        r_render_box(boxes[i].position, Vec2(context->bounds.x, boxes[i].size.y), boxes[i].colour);
-    }
-    for(int i = 0; i < labels.count; i++) {
-        r_render_string(labels[i].position, labels[i].text, labels[i].colour);
+        for(int i = 0; i < context->boxes.count; i++) {
+            r_render_box(context->boxes[i].position, Vec2(context->bounds.x, context->boxes[i].size.y), context->boxes[i].colour);
+        }
+        for(int i = 0; i < context->labels.count; i++) {
+            r_render_string(context->labels[i].position, context->labels[i].text, context->labels[i].colour);
+        }
+        
+        context->labels.count = 0;
+        context->boxes.count = 0;
     }
     
     clicks.count = 0;
-    labels.count = 0;
-    boxes.count = 0;
+    contexts.count = 0;
 }
 
 void ui_process_event(SDL_Event *event) {
     if(event->type == SDL_MOUSEBUTTONDOWN || event->type == SDL_MOUSEBUTTONUP) {
+        if(event->button.button != SDL_BUTTON_LEFT) return;
+        
         UI_Click click;
         click.position = cursor_position;
         click.down = event->type == SDL_MOUSEBUTTONDOWN;
@@ -81,10 +84,9 @@ void ui_end() {
     if(current_context < 0) return;
     UI_Context *context = &contexts[current_context];
     
-    UI_Box box = {context->id, context->origin, context->bounds};
-    array_add(&boxes, box);
+    UI_Box box = {context->origin, context->bounds};
+    array_add(&context->boxes, box);
     
-    array_remove(&contexts, current_context);
     current_context--;
 }
 
@@ -112,10 +114,10 @@ void ui_label(const char *text) {
     Vec2 string_size = get_string_size(null, text);
     
     UI_Label label;
-    label.context = context->id;
     label.position = context->origin + context->offset;
+    label.size = string_size;
     strcpy(label.text, text);
-    array_add(&labels, label);
+    array_add(&context->labels, label);
     
     ui_update_for_new_item(context, string_size);
 }
@@ -136,15 +138,14 @@ bool ui_button(const char *text) {
         }
     }
     
-    UI_Box box = {context->id, context->origin + context->offset, string_size, colour};
-    array_add(&boxes, box);
+    UI_Box box = {context->origin + context->offset, string_size, colour};
+    array_add(&context->boxes, box);
     
     UI_Label label;
-    label.context = context->id;
     label.position = context->origin + context->offset;
     strcpy(label.text, text);
     label.colour = Vec4(1,1,1,1);
-    array_add(&labels, label);
+    array_add(&context->labels, label);
     
     ui_update_for_new_item(context, string_size);
     
@@ -156,3 +157,32 @@ void ui_spacing() {
     UI_Context *context = &contexts[current_context];
     ui_update_for_new_item(context, Vec2(0, 16));
 }
+
+bool ui_begin_context_label(const char *text) {
+    if(current_context < 0) return false;
+    UI_Context *context = &contexts[current_context];
+    
+    ui_label(text);
+    UI_Label *label = &context->labels[context->labels.count - 1];
+    bool hovering = point_box_intersection(cursor_position, label->position, label->size);
+    if(hovering) context->currently_hovering = context->labels.count - 1;
+    
+    bool should_show = context->currently_hovering == (context->labels.count - 1);
+    
+    float xpos = label->position.x + label->size.x;
+    float ypos = label->position.y;
+    ui_begin(Vec2(xpos, ypos));
+    
+    return should_show;
+}
+
+void ui_end_context_label() {
+    ui_end();
+}
+    
+    
+    
+    
+    
+    
+    

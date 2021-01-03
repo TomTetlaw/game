@@ -7,25 +7,38 @@ struct My_Entity { // @entity_type
 struct My_Entity1 { // @entity_type
     entity_stuff(My_Entity1);
 };
+
 struct My_Entity2 { // @entity_type
     entity_stuff(My_Entity2);
 };
+
 struct My_Entity3 { // @entity_type
     entity_stuff(My_Entity3);
 };
+
 struct My_Entity4 { // @entity_type
     entity_stuff(My_Entity4);
 };
+
 struct My_Entity5 { // @entity_type
     entity_stuff(My_Entity5);
 };
+
 struct My_Entity6 { // @entity_type
     entity_stuff(My_Entity6);
 };
+
 struct My_Entity7 { // @entity_type
     entity_stuff(My_Entity7);
 };
 
+struct My_Entity8 { // @entity_type
+    entity_stuff(My_Entity8);
+};
+
+struct My_Entity9 { // @entity_type
+    entity_stuff(My_Entity9);
+};
 
 int main(int argc, char *argv[]) {
     if(SDL_Init(SDL_INIT_EVERYTHING) < 0) fatal_error("ERROR", "Could not initialize SDL2: %s", SDL_GetError());
@@ -108,33 +121,36 @@ int main(int argc, char *argv[]) {
             }
         }
         
-        ent_update();
-        ent_render();
-        
-        if(left_pressed) {
-            context_menu_open = false;
-            selected_entity = null;
-        }
-        
         if(context_menu_open) {
             ui_begin(context_position);
             
             if(selected_entity) {
                 if(ui_button("Remove")) ent_remove_base(selected_entity);
             } else {
-                for(int i = 0; i < num_entity_types; i++) {
-                    if(ui_button(entity_type_names[i])) {
-                        Entity *ent = ent_create_from_name(entity_type_names[i]);
-                        ent->position = cursor_position;
-                        ent->texture = load_texture("data/textures/test.jpg");
+                if(ui_begin_context_label("Create Entity >")) {
+                    for(int i = 0; i < num_entity_types; i++) {
+                        if(ui_button(entity_type_names[i])) {
+                            Entity *ent = ent_create_from_name(entity_type_names[i]);
+                            ent->position = cursor_position;
+                            ent->texture = load_texture("data/textures/test.jpg");
+                        }
                     }
                 }
+                ui_end_context_label();
             }
             
             ui_end();
         }
         
+        if(left_pressed) {
+            context_menu_open = false;
+            selected_entity = null;
+        }
+        
         ui_end_frame();
+        
+        ent_update();
+        ent_render();
         
         r_render_frame();
     }

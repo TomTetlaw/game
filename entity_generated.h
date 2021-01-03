@@ -9,6 +9,8 @@ enum Entity_Type {
 	_My_Entity5,
 	_My_Entity6,
 	_My_Entity7,
+	_My_Entity8,
+	_My_Entity9,
 };
 extern int num_entity_types;
 extern const char *entity_type_names[];

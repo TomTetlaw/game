@@ -18,4 +18,7 @@ bool ui_button(const char *label);
 
 void ui_spacing();
 
+bool ui_begin_context_label(const char *text);
+void ui_end_context_label();
+
 #endif

@@ -6,6 +6,8 @@ Contiguous_Array<My_Entity4, entities_per_list> My_Entity4::_list;
 Contiguous_Array<My_Entity5, entities_per_list> My_Entity5::_list;
 Contiguous_Array<My_Entity6, entities_per_list> My_Entity6::_list;
 Contiguous_Array<My_Entity7, entities_per_list> My_Entity7::_list;
+Contiguous_Array<My_Entity8, entities_per_list> My_Entity8::_list;
+Contiguous_Array<My_Entity9, entities_per_list> My_Entity9::_list;
 void initialize_entity_lists() {
 	carray_init(&My_Entity::_list);
 	carray_init(&My_Entity1::_list);
@@ -15,6 +17,8 @@ void initialize_entity_lists() {
 	carray_init(&My_Entity5::_list);
 	carray_init(&My_Entity6::_list);
 	carray_init(&My_Entity7::_list);
+	carray_init(&My_Entity8::_list);
+	carray_init(&My_Entity9::_list);
 }
 void free_entity_lists() {
 	carray_free(&My_Entity::_list);
@@ -25,6 +29,8 @@ void free_entity_lists() {
 	carray_free(&My_Entity5::_list);
 	carray_free(&My_Entity6::_list);
 	carray_free(&My_Entity7::_list);
+	carray_free(&My_Entity8::_list);
+	carray_free(&My_Entity9::_list);
 }
 void assign_entity_type_tags() {
 	My_Entity::_tag = Entity_Type::_My_Entity;
@@ -35,6 +41,8 @@ void assign_entity_type_tags() {
 	My_Entity5::_tag = Entity_Type::_My_Entity5;
 	My_Entity6::_tag = Entity_Type::_My_Entity6;
 	My_Entity7::_tag = Entity_Type::_My_Entity7;
+	My_Entity8::_tag = Entity_Type::_My_Entity8;
+	My_Entity9::_tag = Entity_Type::_My_Entity9;
 }
 Entity_Type My_Entity::_tag;
 Entity_Type My_Entity1::_tag;
@@ -44,6 +52,8 @@ Entity_Type My_Entity4::_tag;
 Entity_Type My_Entity5::_tag;
 Entity_Type My_Entity6::_tag;
 Entity_Type My_Entity7::_tag;
+Entity_Type My_Entity8::_tag;
+Entity_Type My_Entity9::_tag;
 void ent_remove_base(Entity *entity) {
 	switch(entity->tag) {
 	case Entity_Type::_My_Entity: {
@@ -78,6 +88,14 @@ void ent_remove_base(Entity *entity) {
 			My_Entity7 *derived = (My_Entity7 *)entity->derived;
 			ent_remove(derived);
 		} break;
+	case Entity_Type::_My_Entity8: {
+			My_Entity8 *derived = (My_Entity8 *)entity->derived;
+			ent_remove(derived);
+		} break;
+	case Entity_Type::_My_Entity9: {
+			My_Entity9 *derived = (My_Entity9 *)entity->derived;
+			ent_remove(derived);
+		} break;
 	}
 }
 Entity *ent_create_from_name(const char *type_name) {
@@ -105,6 +123,12 @@ Entity *ent_create_from_name(const char *type_name) {
 	if(!strcmp(type_name, "My_Entity7")) {
 		return ent_create(My_Entity7)->base;
 	}
+	if(!strcmp(type_name, "My_Entity8")) {
+		return ent_create(My_Entity8)->base;
+	}
+	if(!strcmp(type_name, "My_Entity9")) {
+		return ent_create(My_Entity9)->base;
+	}
 
 	return null;
 }
@@ -117,5 +141,7 @@ const char *entity_type_names[] = {
 	"My_Entity5",
 	"My_Entity6",
 	"My_Entity7",
+	"My_Entity8",
+	"My_Entity9",
 };
-int num_entity_types = 8;
+int num_entity_types = 10;
