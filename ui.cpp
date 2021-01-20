@@ -36,6 +36,21 @@ struct UI_Click {
 
 internal Array<UI_Click> clicks;
 
+int next_context = 0;
+int ui_get_new_context() { return next_context++; }
+
+UI_Context *get_context(int id) {
+    if(id < 0) return null;
+    
+    if(contexts.count <= id) {
+        UI_Context context;
+        array_add(&contexts, context);
+        return &contexts[contexts.count-1];
+    }
+    
+    return &contexts[id];
+}
+
 void ui_begin_frame() {
     ui_wants_mouse_input = false;
     ui_wants_keyboard_input = false;
@@ -72,22 +87,21 @@ void ui_process_event(SDL_Event *event) {
     }    
 }
 
-void ui_begin(Vec2 origin) {
-    UI_Context context;
-    context.id = contexts.count;
-    context.origin = origin;
-    current_context = context.id;
-    array_add(&contexts, context);
+void ui_begin(int id, Vec2 origin) {
+    UI_Context *context = get_context(id);
+    context->id = contexts.count;
+    context->origin = origin;
+    current_context = id;
 }
 
-void ui_end() {
-    if(current_context < 0) return;
-    UI_Context *context = &contexts[current_context];
+void ui_end(int id) {
+    UI_Context *context = get_context(id);
+    if(!context) return;
     
     UI_Box box = {context->origin, context->bounds};
-    array_add(&context->boxes, box);
+    array_add(&context->boxes, box);    
     
-    current_context--;
+    current_context = -1;
 }
 
 void ui_label_format(const char *text, ...) {
@@ -108,8 +122,8 @@ void ui_update_for_new_item(UI_Context *context, Vec2 size) {
 }
 
 void ui_label(const char *text) {
-    if(current_context < 0) return;
-    UI_Context *context = &contexts[current_context];
+    UI_Context *context = get_context(current_context);
+    if(!context) return;
     
     Vec2 string_size = get_string_size(null, text);
     
@@ -123,8 +137,8 @@ void ui_label(const char *text) {
 }
 
 bool ui_button(const char *text) {
-    if(current_context < 0) return false;
-    UI_Context *context = &contexts[current_context];
+    UI_Context *context = get_context(current_context);
+    if(!context) return;
     
     Vec2 string_size = get_string_size(null, text);
     Vec4 colour = Vec4(127/255.0f, 122/255.0f, 255/255.0f, 0.2f);
@@ -153,14 +167,14 @@ bool ui_button(const char *text) {
 }
 
 void ui_spacing() {
-    if(current_context < 0) return;
-    UI_Context *context = &contexts[current_context];
+    UI_Context *context = get_context(current_context);
+    if(!context) return;
     ui_update_for_new_item(context, Vec2(0, 16));
 }
 
-bool ui_begin_context_label(const char *text) {
-    if(current_context < 0) return false;
-    UI_Context *context = &contexts[current_context];
+bool ui_begin_context_label(int id, const char *text) {
+    UI_Context *context = get_context(current_context);
+    if(!context) return;
     
     ui_label(text);
     UI_Label *label = &context->labels[context->labels.count - 1];
@@ -176,8 +190,8 @@ bool ui_begin_context_label(const char *text) {
     return should_show;
 }
 
-void ui_end_context_label() {
-    ui_end();
+void ui_end_context_label(int id) {
+    ui_end(int id);
 }
     
     

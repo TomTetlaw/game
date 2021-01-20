@@ -135,4 +135,6 @@ template<typename T, int s> void carray_remove(Contiguous_Array<T, s> *ca, int i
     ca->last_removed = index;
 }
 
+
+
 #endif
